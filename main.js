@@ -292,12 +292,17 @@ function viewStlFile() {
 function addDownloadLink(container, blob, fileName) {
   const link = document.createElement('a');
   link.innerText = fileName;
-  link.href = URL.createObjectURL(blob);
-  link.download = fileName;
-  container.append(link);
   if (window.onFileExported) {
-    window.onFileExported(blob, fileName);
+    link.href = '#';
+    link.addEventListener('click', function(e) {
+      e.preventDefault();
+      window.onFileExported(blob, fileName);
+    });
+  } else {
+    link.href = URL.createObjectURL(blob);
+    link.download = fileName;
   }
+  container.append(link);
   return link;
 }
 
@@ -307,13 +312,19 @@ function addScadLink(container, value, fileName) {
 
   // Create blob for download
   const blob = new Blob([value], { type: 'text/plain' });
-  link.href = URL.createObjectURL(blob);
-  link.download = fileName;
+
+  if (window.onFileExported) {
+    link.href = '#';
+    link.addEventListener('click', function(e) {
+      e.preventDefault();
+      window.onFileExported(blob, fileName);
+    });
+  } else {
+    link.href = URL.createObjectURL(blob);
+    link.download = fileName;
+  }
 
   container.append(link);
-  if (window.onFileExported) {
-    window.onFileExported(blob, fileName);
-  }
   return link;
 }
 
