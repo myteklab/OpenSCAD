@@ -295,6 +295,9 @@ function addDownloadLink(container, blob, fileName) {
   link.href = URL.createObjectURL(blob);
   link.download = fileName;
   container.append(link);
+  if (window.onFileExported) {
+    window.onFileExported(blob, fileName);
+  }
   return link;
 }
 
@@ -308,6 +311,9 @@ function addScadLink(container, value, fileName) {
   link.download = fileName;
 
   container.append(link);
+  if (window.onFileExported) {
+    window.onFileExported(blob, fileName);
+  }
   return link;
 }
 
