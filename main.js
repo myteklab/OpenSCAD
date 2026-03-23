@@ -956,6 +956,11 @@ window.loadProjectData = function(data) {
   }
 };
 
+// Expose the current STL blob for the adapter (preview capture)
+window.getStlBlob = function() {
+  return stlFile || null;
+};
+
 // Make showToast available globally for adapter
 window.showToast = showToast;
 
