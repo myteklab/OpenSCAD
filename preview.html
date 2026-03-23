@@ -226,14 +226,20 @@ body {
       // Z-up to Y-up rotation (OpenSCAD convention)
       viewer.rotate(id, -1.5708, 0, 0);
 
-      // Grid setup
-      var modelX = parseInt(viewer.get_model_info(1).dims.x) * 2;
-      if (modelX < 50) modelX = 50;
-      var modelY = parseInt(viewer.get_model_info(1).dims.y) * 2;
+      // Grid setup: scale divisions so there are never too many lines
+      var dims = viewer.get_model_info(1).dims;
+      var modelX = parseInt(dims.x) * 2;
+      var modelY = parseInt(dims.y) * 2;
       if (modelY > modelX) modelX = modelY;
+      if (modelX < 50) modelX = 50;
+
+      // Keep ~10-50 grid lines regardless of model size
+      var divisions = modelX;
+      if (modelX >= 1000) divisions = modelX / 100;
+      else if (modelX >= 100) divisions = modelX / 10;
 
       if (gridToggle.checked) {
-        viewer.set_grid(true, modelX, modelX);
+        viewer.set_grid(true, modelX, divisions);
         addAxesHelper(modelX);
       }
 
@@ -285,15 +291,18 @@ body {
     if (!viewer) return;
     try {
       var modelX = parseInt(viewer.get_model_info(1).dims.x) * 2;
-      if (modelX < 50) modelX = 50;
       var modelY = parseInt(viewer.get_model_info(1).dims.y) * 2;
       if (modelY > modelX) modelX = modelY;
+      if (modelX < 50) modelX = 50;
+      var div = modelX;
+      if (modelX >= 1000) div = modelX / 100;
+      else if (modelX >= 100) div = modelX / 10;
 
       if (gridToggle.checked) {
-        viewer.set_grid(true, modelX, modelX);
+        viewer.set_grid(true, modelX, div);
         addAxesHelper(modelX);
       } else {
-        viewer.set_grid(false, modelX, modelX);
+        viewer.set_grid(false, modelX, div);
         removeAxesHelper();
       }
     } catch (e) { /* model not loaded yet */ }
