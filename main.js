@@ -96,46 +96,69 @@ var stlFile;
 
 let gridEnable = true;
 
-// Compute grid size and divisions based on model dimensions
-function computeGridParams() {
+// Compute grid size based on model dimensions
+function getGridSize() {
   try {
     var dims = stlViewer.get_model_info(1).dims;
-    var gridSize = parseInt(dims.x) * 2;
-    var gridY = parseInt(dims.y) * 2;
-    if (gridY > gridSize) gridSize = gridY;
-    if (gridSize < 50) gridSize = 50;
-    // Keep divisions reasonable: ~20 lines max
-    var divisions;
-    if (gridSize >= 1000) divisions = Math.round(gridSize / 100);
-    else if (gridSize >= 200) divisions = Math.round(gridSize / 10);
-    else divisions = gridSize;
-    var spacing = Math.round(gridSize / divisions);
-    return { size: gridSize, divisions: divisions, spacing: spacing };
+    var s = Math.max(parseInt(dims.x), parseInt(dims.y)) * 2;
+    return Math.max(s, 50);
   } catch (e) {
-    return { size: 50, divisions: 50, spacing: 1 };
+    return 50;
   }
 }
 
-function updateGridLabel(spacing, show) {
+// Build a two-level grid: fine lines at 1-unit, major lines at a larger interval
+function addCustomGrid(size) {
+  removeCustomGrid();
+
+  // Determine major line interval based on model scale
+  var majorStep;
+  if (size >= 2000) majorStep = 100;
+  else if (size >= 400) majorStep = 10;
+  else majorStep = 5;
+
+  var fineDivisions = size;       // 1-unit cells
+  var majorDivisions = Math.round(size / majorStep);
+
+  // Fine grid: thin, subtle lines
+  var fineGrid = new THREE.GridHelper(size, fineDivisions, 0x1a3050, 0x1a3050);
+  fineGrid.material.opacity = 0.18;
+  fineGrid.material.transparent = true;
+  fineGrid.name = '_gridFine';
+
+  // Major grid: brighter, more visible lines
+  var majorGrid = new THREE.GridHelper(size, majorDivisions, 0x2a6090, 0x2a6090);
+  majorGrid.material.opacity = 0.45;
+  majorGrid.material.transparent = true;
+  majorGrid.name = '_gridMajor';
+
+  // Axes helper
+  var axesHelper = new THREE.AxesHelper((size / 2) + 1);
+  axesHelper.name = '_gridAxes';
+  var colors = axesHelper.geometry.attributes.color;
+  colors.setXYZ(0, 1, 0, 0); colors.setXYZ(1, 1, 0, 0);
+  colors.setXYZ(2, 0, 0, 1); colors.setXYZ(3, 0, 0, 1);
+  colors.setXYZ(4, 0, 1, 0); colors.setXYZ(5, 0, 1, 0);
+
+  stlViewer.scene.add(fineGrid);
+  stlViewer.scene.add(majorGrid);
+  stlViewer.scene.add(axesHelper);
+
+  // Update scale label
   var el = document.getElementById('grid-scale-label');
-  if (!el) return;
-  if (!show) { el.style.display = 'none'; return; }
-  el.textContent = spacing + ' unit' + (spacing !== 1 ? 's' : '') + ' per square';
-  el.style.display = 'block';
+  if (el) {
+    el.textContent = 'Major lines: ' + majorStep + ' units';
+    el.style.display = 'block';
+  }
 }
 
-function addGridAxes(size) {
-  stlViewer.scene.remove(stlViewer.scene.getObjectByName("GridHelper"));
-  var axesHelper = new THREE.AxesHelper((size / 2) + 1);
-  axesHelper.name = "GridHelper";
-  var colors = axesHelper.geometry.attributes.color;
-  colors.setXYZ(0, 1, 0, 0);
-  colors.setXYZ(1, 1, 0, 0);
-  colors.setXYZ(2, 0, 0, 1);
-  colors.setXYZ(3, 0, 0, 1);
-  colors.setXYZ(4, 0, 1, 0);
-  colors.setXYZ(5, 0, 1, 0);
-  stlViewer.scene.add(axesHelper);
+function removeCustomGrid() {
+  ['_gridFine', '_gridMajor', '_gridAxes', 'GridHelper'].forEach(function(n) {
+    var obj = stlViewer.scene.getObjectByName(n);
+    if (obj) stlViewer.scene.remove(obj);
+  });
+  var el = document.getElementById('grid-scale-label');
+  if (el) el.style.display = 'none';
 }
 
   stlColor.oninput = () => {
@@ -156,17 +179,14 @@ function addGridAxes(size) {
 
 
   enableGridCheckbox.onchange = () => {
-    var gp = computeGridParams();
     if (enableGridCheckbox.checked) {
-      stlViewer.set_grid(true, gp.size, gp.divisions);
       gridEnable = true;
-      addGridAxes(gp.size);
-      updateGridLabel(gp.spacing, true);
+      var size = getGridSize();
+      stlViewer.set_grid(false, size, size); // disable built-in grid
+      addCustomGrid(size);
     } else {
-      stlViewer.set_grid(false, gp.size, gp.divisions);
       gridEnable = false;
-      stlViewer.scene.remove(stlViewer.scene.getObjectByName("GridHelper"));
-      updateGridLabel(gp.spacing, false);
+      removeCustomGrid();
     }
   }
 
@@ -189,16 +209,14 @@ function buildStlViewer() {
     stlViewer.set_auto_resize(true);
     stlViewer.rotate(id, -1.5708, 0, 0);
 
-var gp = computeGridParams();
-stlViewer.set_grid(gridEnable, gp.size, gp.divisions);
+var gridSize = getGridSize();
+stlViewer.set_grid(false, gridSize, gridSize); // disable built-in grid
 
 if (enableGridCheckbox.checked) {
-    addGridAxes(gp.size);
-    updateGridLabel(gp.spacing, true);
+    addCustomGrid(gridSize);
 } else {
     gridEnable = false;
-    stlViewer.scene.remove(stlViewer.scene.getObjectByName("GridHelper"));
-    updateGridLabel(gp.spacing, false);
+    removeCustomGrid();
 }
 
 
