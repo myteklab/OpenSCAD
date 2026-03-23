@@ -182,7 +182,7 @@ window.resourceLoaded = function(resourceName) {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 15px 20px;
+      padding: 8px 14px;
       background: linear-gradient(135deg, #0f3460 0%, #16213e 100%);
       border-bottom: 2px solid #e94560;
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
@@ -191,12 +191,12 @@ window.resourceLoaded = function(resourceName) {
     .toolbar-section {
       display: flex;
       align-items: center;
-      gap: 15px;
+      gap: 10px;
     }
 
     .project-title h3 {
       margin: 0;
-      font-size: 18px;
+      font-size: 16px;
       font-weight: 600;
       color: #fff;
       text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
@@ -204,45 +204,43 @@ window.resourceLoaded = function(resourceName) {
 
     .toolbar-actions {
       display: flex;
-      gap: 10px;
+      gap: 6px;
     }
 
     /* Modern Button Styles */
     .btn {
       display: inline-flex;
       align-items: center;
-      gap: 6px;
-      padding: 10px 18px;
+      gap: 5px;
+      padding: 6px 12px;
       border: none;
-      border-radius: 6px;
-      font-size: 14px;
+      border-radius: 5px;
+      font-size: 13px;
       font-weight: 500;
       cursor: pointer;
-      transition: all 0.2s ease;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+      transition: all 0.15s ease;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
     }
 
     .btn:hover:not(:disabled) {
-      transform: translateY(-1px);
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+      filter: brightness(1.1);
     }
 
     .btn:active:not(:disabled) {
-      transform: translateY(0);
+      filter: brightness(0.95);
     }
 
     .btn:disabled {
-      opacity: 0.5;
+      opacity: 0.4;
       cursor: not-allowed;
     }
+
+    .btn svg { flex-shrink: 0; }
 
     .btn-primary {
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       color: white;
-    }
-
-    .btn-primary:hover:not(:disabled) {
-      background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
     }
 
     .btn-success {
@@ -250,17 +248,9 @@ window.resourceLoaded = function(resourceName) {
       color: #1a1a2e;
     }
 
-    .btn-success:hover:not(:disabled) {
-      background: linear-gradient(135deg, #20e3b2 0%, #0cebeb 100%);
-    }
-
     .btn-danger {
       background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
       color: white;
-    }
-
-    .btn-danger:hover:not(:disabled) {
-      background: linear-gradient(135deg, #f5576c 0%, #f093fb 100%);
     }
 
     .btn-info {
@@ -268,38 +258,29 @@ window.resourceLoaded = function(resourceName) {
       color: white;
     }
 
-    .btn-info:hover:not(:disabled) {
-      background: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%);
-    }
-
     .btn-secondary {
-      background: linear-gradient(135deg, #868f96 0%, #596164 100%);
-      color: white;
+      background: rgba(255,255,255,0.1);
+      color: #ccd6f6;
+      border: 1px solid rgba(255,255,255,0.15);
     }
 
     .btn-secondary:hover:not(:disabled) {
-      background: linear-gradient(135deg, #596164 0%, #868f96 100%);
-    }
-
-    .btn-icon {
-      font-size: 16px;
-    }
-
-    .btn-icon-only {
-      padding: 8px 12px;
-      background: rgba(255, 255, 255, 0.1);
-      color: #ccd6f6;
-      border: 1px solid rgba(255, 255, 255, 0.2);
-    }
-
-    .btn-icon-only:hover:not(:disabled) {
-      background: rgba(255, 255, 255, 0.2);
+      background: rgba(255,255,255,0.18);
       color: #fff;
     }
 
-    .btn-icon-only .btn-icon {
-      font-size: 14px;
+    .btn-icon-only {
+      padding: 5px 8px;
+      background: rgba(255, 255, 255, 0.08);
+      color: #ccd6f6;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      font-size: 12px;
       font-weight: 600;
+    }
+
+    .btn-icon-only:hover:not(:disabled) {
+      background: rgba(255, 255, 255, 0.18);
+      color: #fff;
     }
 
     /* Panel Resize Handle */
@@ -322,13 +303,13 @@ window.resourceLoaded = function(resourceName) {
 
     /* Export Section */
     .export-section {
-      padding: 12px 20px;
+      padding: 4px 14px;
       background: #0f3460;
       border-bottom: 1px solid #16213e;
       display: flex;
-      gap: 15px;
+      gap: 10px;
       align-items: center;
-      min-height: 48px;
+      min-height: 32px;
     }
 
     .export-links {
@@ -360,59 +341,83 @@ window.resourceLoaded = function(resourceName) {
     /* View Controls */
     .view-controls {
       display: flex;
-      justify-content: space-between;
-      padding: 12px 20px;
+      align-items: center;
+      padding: 6px 14px;
       background: #16213e;
       border-bottom: 1px solid #0f3460;
-      gap: 20px;
+      gap: 6px;
+      flex-wrap: wrap;
     }
 
     .control-group {
       display: flex;
       align-items: center;
-      gap: 15px;
+      gap: 2px;
       flex-wrap: wrap;
     }
 
+    .control-divider {
+      width: 1px;
+      height: 20px;
+      background: rgba(255,255,255,0.12);
+      margin: 0 6px;
+    }
+
     .control-label {
-      display: flex;
+      display: inline-flex;
       align-items: center;
-      gap: 6px;
+      gap: 5px;
       cursor: pointer;
-      font-size: 13px;
-      color: #ccd6f6;
+      font-size: 12px;
+      color: #8892b0;
       user-select: none;
-      transition: color 0.2s;
+      padding: 4px 8px;
+      border-radius: 4px;
+      transition: all 0.15s;
     }
 
     .control-label:hover {
-      color: #0cebeb;
+      color: #ccd6f6;
+      background: rgba(255,255,255,0.06);
     }
 
+    .control-label svg { opacity: 0.6; flex-shrink: 0; }
+    .control-label:hover svg { opacity: 0.9; }
+
     .control-label input[type="checkbox"] {
-      width: 16px;
-      height: 16px;
-      cursor: pointer;
-      accent-color: #0cebeb;
+      display: none;
+    }
+
+    .control-label input[type="checkbox"]:checked ~ span,
+    .control-label input[type="checkbox"]:checked ~ svg {
+      color: #0cebeb;
+      opacity: 1;
+    }
+
+    .control-label.active,
+    .control-label:has(input:checked) {
+      color: #ccd6f6;
+      background: rgba(12,235,235,0.08);
     }
 
     .color-picker {
-      width: 50px;
-      height: 30px;
-      border: 2px solid #0f3460;
-      border-radius: 4px;
+      width: 28px;
+      height: 20px;
+      border: 1px solid #0f3460;
+      border-radius: 3px;
       cursor: pointer;
       background: transparent;
+      padding: 0;
     }
 
     .opacity-control {
-      gap: 8px;
+      gap: 5px;
     }
 
     .opacity-slider {
-      width: 120px;
-      height: 6px;
-      border-radius: 3px;
+      width: 80px;
+      height: 4px;
+      border-radius: 2px;
       background: #0f3460;
       outline: none;
       cursor: pointer;
@@ -420,9 +425,9 @@ window.resourceLoaded = function(resourceName) {
     }
 
     .opacity-value {
-      min-width: 35px;
+      min-width: 28px;
       text-align: right;
-      font-size: 12px;
+      font-size: 11px;
       color: #8892b0;
     }
 
@@ -1054,23 +1059,23 @@ window.resourceLoaded = function(resourceName) {
 
         <div class="toolbar-section toolbar-actions">
           <button class="btn btn-primary" id="run" title="Render (Ctrl+Enter)">
-            <span class="btn-icon">&#9654;</span> Render
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21"/></svg> Render
           </button>
           <button class="btn btn-danger" id="kill" disabled title="Stop Rendering">
-            <span class="btn-icon">&#9209;</span> Stop
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="4" y="4" width="16" height="16" rx="2"/></svg> Stop
           </button>
           <button class="btn btn-secondary" id="openDocs" title="OpenSCAD Documentation">
-            <span class="btn-icon">&#128218;</span> Docs
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg> Docs
           </button>
-          <div style="display: flex; gap: 5px; align-items: center; margin-left: 10px; padding-left: 10px; border-left: 1px solid rgba(255,255,255,0.2);">
+          <div style="display: flex; gap: 3px; align-items: center; margin-left: 6px; padding-left: 6px; border-left: 1px solid rgba(255,255,255,0.15);">
             <button class="btn btn-icon-only" id="decreaseFontSize" title="Decrease Font Size (Ctrl+-)">
-              <span class="btn-icon">A-</span>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/></svg>
             </button>
             <button class="btn btn-icon-only" id="increaseFontSize" title="Increase Font Size (Ctrl++)">
-              <span class="btn-icon">A+</span>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
             </button>
             <button class="btn btn-icon-only" id="resetFontSize" title="Reset Font Size (Ctrl+0)">
-              <span class="btn-icon">A</span>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 19h16"/><path d="M12 4l-5 15h2.5l1.5-4h6l1.5 4H21L16 4h-4z"/></svg>
             </button>
           </div>
         </div>
@@ -1086,49 +1091,64 @@ window.resourceLoaded = function(resourceName) {
       <!-- View Controls -->
       <div class="view-controls">
         <div class="control-group">
-          <label class="control-label">
+          <label class="control-label" title="Show grid">
             <input type="checkbox" id="enableGrid" checked>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="1"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/></svg>
             <span>Grid</span>
           </label>
-          <label class="control-label">
-            <input type="checkbox" id="autorender">
-            <span>Auto-Render</span>
-          </label>
-          <label class="control-label">
-            <input type="checkbox" id="autorotate">
-            <span>Auto-Rotate</span>
-          </label>
-          <label class="control-label">
+          <label class="control-label" title="Show edges">
             <input type="checkbox" id="showedges">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 3l9 5v8l-9 5-9-5V8z"/><line x1="12" y1="3" x2="12" y2="13"/><line x1="12" y1="13" x2="21" y2="8"/><line x1="12" y1="13" x2="3" y2="8"/></svg>
             <span>Edges</span>
           </label>
-          <label class="control-label">
-            <input type="checkbox" id="resetCam" checked>
-            <span>Reset Camera</span>
+          <label class="control-label" title="Auto-rotate model">
+            <input type="checkbox" id="autorotate">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.2-8.6"/><polyline points="21 3 21 9 15 9"/></svg>
+            <span>Rotate</span>
           </label>
-          <label class="control-label">
-            <input type="checkbox" id="centerModel" checked>
-            <span>Center Model</span>
+          <label class="control-label" title="Auto-render on code change">
+            <input type="checkbox" id="autorender">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20V10"/><path d="M18 20V4"/><path d="M6 20v-4"/></svg>
+            <span>Auto-Render</span>
           </label>
-          <label class="control-label">
-            <input type="checkbox" id="wordWrap" checked>
-            <span>Word Wrap</span>
-          </label>
-          <input type="checkbox" id="autoparse" checked style="display:none;">
-          <input type="checkbox" id="show-experimental" style="display:none;">
         </div>
 
+        <div class="control-divider"></div>
+
         <div class="control-group">
-          <label class="control-label">
-            <span>Color:</span>
+          <label class="control-label" title="Reset camera on render">
+            <input type="checkbox" id="resetCam" checked>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+            <span>Reset Cam</span>
+          </label>
+          <label class="control-label" title="Center model in view">
+            <input type="checkbox" id="centerModel" checked>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v4"/><path d="M12 18v4"/><path d="M2 12h4"/><path d="M18 12h4"/></svg>
+            <span>Center</span>
+          </label>
+          <label class="control-label" title="Word wrap in editor">
+            <input type="checkbox" id="wordWrap" checked>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M3 12h15a3 3 0 1 1 0 6h-4"/><polyline points="13 16 11 18 13 20"/><path d="M3 18h4"/></svg>
+            <span>Wrap</span>
+          </label>
+        </div>
+
+        <div class="control-divider"></div>
+
+        <div class="control-group">
+          <label class="control-label" title="Model color">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a10 10 0 0 0 0 20c1.1 0 2-.9 2-2v-.5c0-.5-.2-1-.5-1.3-.3-.3-.5-.8-.5-1.3 0-1.1.9-2 2-2h2.4c3 0 5.6-2.5 5.6-5.5C23 5.4 18 2 12 2z"/><circle cx="8" cy="10" r="1.5" fill="currentColor"/><circle cx="12" cy="7" r="1.5" fill="currentColor"/><circle cx="16" cy="10" r="1.5" fill="currentColor"/></svg>
             <input type="color" id="stlColorValue" value="#20CC14" class="color-picker">
           </label>
-          <label class="control-label opacity-control">
-            <span>Opacity:</span>
+          <label class="control-label opacity-control" title="Model opacity">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10" opacity="0.5"/><path d="M12 2a10 10 0 0 1 0 20" fill="currentColor" opacity="0.3"/></svg>
             <input type="range" min="0" max="1" value="0.8" step="0.05" class="opacity-slider" id="stlopacity" name="stlOpacity">
             <span class="opacity-value">80%</span>
           </label>
         </div>
+
+        <input type="checkbox" id="autoparse" checked style="display:none;">
+        <input type="checkbox" id="show-experimental" style="display:none;">
       </div>
 
       <!-- 3D Viewer -->
