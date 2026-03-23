@@ -141,7 +141,7 @@ body {
 
 #scale-label {
   position: absolute;
-  bottom: 46px;
+  bottom: 8px;
   left: 10px;
   background: rgba(22,33,62,0.85);
   color: #8899aa;
@@ -149,13 +149,16 @@ body {
   padding: 3px 8px;
   border-radius: 3px;
   pointer-events: none;
+  z-index: 10;
   display: none;
 }
 </style>
 </head>
 <body>
 
-<div id="viewer-container"></div>
+<div id="viewer-container">
+  <div id="scale-label"></div>
+</div>
 
 <div id="controls">
   <label title="Model color">
@@ -190,7 +193,6 @@ body {
   <span class="hint">Drag to rotate, scroll to zoom, right-drag to pan</span>
 </div>
 
-<div id="scale-label"></div>
 <div id="loading-msg">Loading 3D model...</div>
 <div id="error-msg">Could not load the 3D model.<br>The model may not have been rendered before sharing.</div>
 
