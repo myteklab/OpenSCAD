@@ -696,6 +696,21 @@ window.resourceLoaded = function(resourceName) {
 
     #viewer {
       min-height: 80vh;
+      position: relative;
+    }
+
+    #grid-scale-label {
+      position: absolute;
+      bottom: 10px;
+      left: 10px;
+      background: rgba(22,33,62,0.85);
+      color: #8899aa;
+      font-size: 11px;
+      padding: 3px 8px;
+      border-radius: 3px;
+      pointer-events: none;
+      z-index: 10;
+      display: none;
     }
 
     #monacoEditor {
@@ -1152,7 +1167,9 @@ window.resourceLoaded = function(resourceName) {
       </div>
 
       <!-- 3D Viewer -->
-      <div id="viewer" tabindex="0"></div>
+      <div id="viewer" tabindex="0">
+        <div id="grid-scale-label"></div>
+      </div>
       <span id="features" class="features"></span>
     </div>
   </div>

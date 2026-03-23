@@ -95,27 +95,48 @@ var stlFile;
 // }
 
 let gridEnable = true;
-enableGridCheckbox.addEventListener('change', (event) => {
-  if (event.currentTarget.checked) {
-    gridEnable = true;
-const axesHelper = new THREE.AxesHelper( 26 );
-axesHelper.name = "GridHelper"
-  var colors = axesHelper.geometry.attributes.color;
 
+// Compute grid size and divisions based on model dimensions
+function computeGridParams() {
+  try {
+    var dims = stlViewer.get_model_info(1).dims;
+    var gridSize = parseInt(dims.x) * 2;
+    var gridY = parseInt(dims.y) * 2;
+    if (gridY > gridSize) gridSize = gridY;
+    if (gridSize < 50) gridSize = 50;
+    // Keep divisions reasonable: ~20 lines max
+    var divisions;
+    if (gridSize >= 1000) divisions = Math.round(gridSize / 100);
+    else if (gridSize >= 200) divisions = Math.round(gridSize / 10);
+    else divisions = gridSize;
+    var spacing = Math.round(gridSize / divisions);
+    return { size: gridSize, divisions: divisions, spacing: spacing };
+  } catch (e) {
+    return { size: 50, divisions: 50, spacing: 1 };
+  }
+}
+
+function updateGridLabel(spacing, show) {
+  var el = document.getElementById('grid-scale-label');
+  if (!el) return;
+  if (!show) { el.style.display = 'none'; return; }
+  el.textContent = spacing + ' unit' + (spacing !== 1 ? 's' : '') + ' per square';
+  el.style.display = 'block';
+}
+
+function addGridAxes(size) {
+  stlViewer.scene.remove(stlViewer.scene.getObjectByName("GridHelper"));
+  var axesHelper = new THREE.AxesHelper((size / 2) + 1);
+  axesHelper.name = "GridHelper";
+  var colors = axesHelper.geometry.attributes.color;
   colors.setXYZ(0, 1, 0, 0);
   colors.setXYZ(1, 1, 0, 0);
   colors.setXYZ(2, 0, 0, 1);
   colors.setXYZ(3, 0, 0, 1);
   colors.setXYZ(4, 0, 1, 0);
   colors.setXYZ(5, 0, 1, 0);
-
-stlViewer.scene.add( axesHelper );
-
-  } else {
-    gridEnable = false;
-stlViewer.scene.remove(stlViewer.scene.getObjectByName("GridHelper"));
-  }
-})
+  stlViewer.scene.add(axesHelper);
+}
 
   stlColor.oninput = () => {
     stlViewer.set_color(1, stlColor.value);
@@ -135,51 +156,17 @@ stlViewer.scene.remove(stlViewer.scene.getObjectByName("GridHelper"));
 
 
   enableGridCheckbox.onchange = () => {
-    if (enableGridCheckbox.checked == true) {
-
-//console.log(stlViewer.get_model_info(1));
-
-let modelX = parseInt(stlViewer.get_model_info(1).dims.x) * 2;
-if (modelX < 50) {
-    modelX = 50;
-}
-
-let modelY = parseInt(stlViewer.get_model_info(1).dims.y) * 2;
-if (modelY > modelX) {
-    modelX = modelY;
-}
-
-    stlViewer.set_grid(true,modelX,modelX);
-    gridEnable = true;
-const axesHelper = new THREE.AxesHelper( (modelX / 2) + 1 );
-axesHelper.name = "GridHelper"
-  var colors = axesHelper.geometry.attributes.color;
-
-  colors.setXYZ(0, 1, 0, 0);
-  colors.setXYZ(1, 1, 0, 0);
-  colors.setXYZ(2, 0, 0, 1);
-  colors.setXYZ(3, 0, 0, 1);
-  colors.setXYZ(4, 0, 1, 0);
-  colors.setXYZ(5, 0, 1, 0);
-
-stlViewer.scene.add( axesHelper );
-
+    var gp = computeGridParams();
+    if (enableGridCheckbox.checked) {
+      stlViewer.set_grid(true, gp.size, gp.divisions);
+      gridEnable = true;
+      addGridAxes(gp.size);
+      updateGridLabel(gp.spacing, true);
     } else {
-
-let modelX = parseInt(stlViewer.get_model_info(1).dims.x) * 2;
-if (modelX < 50) {
-    modelX == 50;
-}
-
-let modelY = parseInt(stlViewer.get_model_info(1).dims.y) * 2;
-if (modelY < 50) {
-    modelY == 50;
-}
-
-        stlViewer.set_grid(false,modelX,modelX);
-    gridEnable = false;
-stlViewer.scene.remove(stlViewer.scene.getObjectByName("GridHelper"));
-
+      stlViewer.set_grid(false, gp.size, gp.divisions);
+      gridEnable = false;
+      stlViewer.scene.remove(stlViewer.scene.getObjectByName("GridHelper"));
+      updateGridLabel(gp.spacing, false);
     }
   }
 
@@ -202,45 +189,17 @@ function buildStlViewer() {
     stlViewer.set_auto_resize(true);
     stlViewer.rotate(id, -1.5708, 0, 0);
 
-let modelX = parseInt(stlViewer.get_model_info(1).dims.x) * 2;
-if (modelX < 50) {
-    modelX = 50;
-}
+var gp = computeGridParams();
+stlViewer.set_grid(gridEnable, gp.size, gp.divisions);
 
-let modelY = parseInt(stlViewer.get_model_info(1).dims.y) * 2;
-if (modelY > modelX) {
-    modelX = modelY;
-}
-
-//console.log(modelX + ", " + modelY);
-
-if (parseInt(stlViewer.get_model_info(1).dims.y) >=1000 || parseInt(stlViewer.get_model_info(1).dims.x) >=1000) {
-    stlViewer.set_grid(gridEnable,modelX,modelX/100);
-} else if (parseInt(stlViewer.get_model_info(1).dims.y) >=100 || parseInt(stlViewer.get_model_info(1).dims.x) >=100) {
-    stlViewer.set_grid(gridEnable,modelX,modelX/10);
-} else {
-    stlViewer.set_grid(gridEnable,modelX,modelX);
-}
-
-const axesHelper = new THREE.AxesHelper( (modelX / 2) + 1 );
-const color5 = new THREE.Color( 'skyblue' );
-axesHelper.name = "GridHelper";
-
-  var colors = axesHelper.geometry.attributes.color;
-
-  colors.setXYZ(0, 1, 0, 0);
-  colors.setXYZ(1, 1, 0, 0);
-  colors.setXYZ(2, 0, 0, 1);
-  colors.setXYZ(3, 0, 0, 1);
-  colors.setXYZ(4, 0, 1, 0);
-  colors.setXYZ(5, 0, 1, 0);
-
-if (enableGridCheckbox.checked == true) {
-    stlViewer.scene.add( axesHelper );
+if (enableGridCheckbox.checked) {
+    addGridAxes(gp.size);
+    updateGridLabel(gp.spacing, true);
 } else {
     gridEnable = false;
-stlViewer.scene.remove(stlViewer.scene.getObjectByName("GridHelper"));
-  }
+    stlViewer.scene.remove(stlViewer.scene.getObjectByName("GridHelper"));
+    updateGridLabel(gp.spacing, false);
+}
 
 
     stlViewer.set_opacity(id, stlOpacity.value);
