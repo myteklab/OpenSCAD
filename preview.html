@@ -138,6 +138,19 @@ body {
   color: #667788;
   font-size: 11px;
 }
+
+#scale-label {
+  position: absolute;
+  bottom: 46px;
+  left: 10px;
+  background: rgba(22,33,62,0.85);
+  color: #8899aa;
+  font-size: 11px;
+  padding: 3px 8px;
+  border-radius: 3px;
+  pointer-events: none;
+  display: none;
+}
 </style>
 </head>
 <body>
@@ -177,6 +190,7 @@ body {
   <span class="hint">Drag to rotate, scroll to zoom, right-drag to pan</span>
 </div>
 
+<div id="scale-label"></div>
 <div id="loading-msg">Loading 3D model...</div>
 <div id="error-msg">Could not load the 3D model.<br>The model may not have been rendered before sharing.</div>
 
@@ -191,12 +205,14 @@ body {
   var viewer = null;
   var loadingEl = document.getElementById('loading-msg');
   var errorEl = document.getElementById('error-msg');
+  var scaleLabel = document.getElementById('scale-label');
   var colorPicker = document.getElementById('color-picker');
   var gridToggle = document.getElementById('grid-toggle');
   var rotateToggle = document.getElementById('rotate-toggle');
   var edgesToggle = document.getElementById('edges-toggle');
   var resetCam = document.getElementById('reset-cam');
   var stlUrl = null;
+  var cachedGridSpacing = 1;
 
   // Default camera state (isometric-like view)
   var defaultCameraState = {
@@ -204,6 +220,27 @@ body {
     up: { x: 0, y: 1, z: 0 },
     target: { x: 0, y: 0, z: 0 }
   };
+
+  function getGridParams() {
+    var dims = viewer.get_model_info(1).dims;
+    var gridSize = parseInt(dims.x) * 2;
+    var gridY = parseInt(dims.y) * 2;
+    if (gridY > gridSize) gridSize = gridY;
+    if (gridSize < 50) gridSize = 50;
+    var divisions = gridSize;
+    if (gridSize >= 1000) divisions = gridSize / 100;
+    else if (gridSize >= 100) divisions = gridSize / 10;
+    var spacing = gridSize / divisions;
+    return { size: gridSize, divisions: divisions, spacing: spacing };
+  }
+
+  function updateScaleLabel(spacing, show) {
+    if (!show) { scaleLabel.style.display = 'none'; return; }
+    var unit = spacing;
+    var text = unit + ' unit' + (unit !== 1 ? 's' : '') + ' per square';
+    scaleLabel.textContent = text;
+    scaleLabel.style.display = 'block';
+  }
 
   function showError() {
     loadingEl.style.display = 'none';
@@ -227,20 +264,13 @@ body {
       viewer.rotate(id, -1.5708, 0, 0);
 
       // Grid setup: scale divisions so there are never too many lines
-      var dims = viewer.get_model_info(1).dims;
-      var modelX = parseInt(dims.x) * 2;
-      var modelY = parseInt(dims.y) * 2;
-      if (modelY > modelX) modelX = modelY;
-      if (modelX < 50) modelX = 50;
-
-      // Keep ~10-50 grid lines regardless of model size
-      var divisions = modelX;
-      if (modelX >= 1000) divisions = modelX / 100;
-      else if (modelX >= 100) divisions = modelX / 10;
+      var gp = getGridParams();
+      cachedGridSpacing = gp.spacing;
 
       if (gridToggle.checked) {
-        viewer.set_grid(true, modelX, divisions);
-        addAxesHelper(modelX);
+        viewer.set_grid(true, gp.size, gp.divisions);
+        addAxesHelper(gp.size);
+        updateScaleLabel(gp.spacing, true);
       }
 
       // Notify parent that preview has loaded
@@ -290,19 +320,15 @@ body {
   gridToggle.addEventListener('change', function() {
     if (!viewer) return;
     try {
-      var modelX = parseInt(viewer.get_model_info(1).dims.x) * 2;
-      var modelY = parseInt(viewer.get_model_info(1).dims.y) * 2;
-      if (modelY > modelX) modelX = modelY;
-      if (modelX < 50) modelX = 50;
-      var div = modelX;
-      if (modelX >= 1000) div = modelX / 100;
-      else if (modelX >= 100) div = modelX / 10;
+      var gp = getGridParams();
 
       if (gridToggle.checked) {
-        viewer.set_grid(true, modelX, div);
-        addAxesHelper(modelX);
+        viewer.set_grid(true, gp.size, gp.divisions);
+        addAxesHelper(gp.size);
+        updateScaleLabel(gp.spacing, true);
       } else {
-        viewer.set_grid(false, modelX, div);
+        viewer.set_grid(false, gp.size, gp.divisions);
+        updateScaleLabel(gp.spacing, false);
         removeAxesHelper();
       }
     } catch (e) { /* model not loaded yet */ }
