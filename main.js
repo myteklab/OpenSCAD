@@ -1292,6 +1292,72 @@ const openscadCommands = [
     description: 'Imports external 3D files (STL, OFF, DXF). DXF imports as 2D.',
     params: '<strong>file:</strong> Path to file<br><strong>convexity:</strong> For proper rendering (try values 1-10)',
     example: 'import("model.stl");\n\n// 2D import for extrusion\nlinear_extrude(5)\n  import("shape.dxf");'
+  },
+
+  // Interface
+  {
+    name: 'Rotate View',
+    category: 'interface',
+    syntax: 'Left-click + drag on 3D viewer',
+    description: 'Orbit around the model. Click and drag anywhere on the 3D viewer to rotate your view.',
+    params: '<strong>Action:</strong> Left mouse button + drag',
+    example: '// Click and drag on the 3D viewer to orbit'
+  },
+  {
+    name: 'Pan View',
+    category: 'interface',
+    syntax: 'Right-click + drag on 3D viewer',
+    description: 'Slide the camera without rotating. Right-click and drag to reposition the view.',
+    params: '<strong>Action:</strong> Right mouse button + drag',
+    example: '// Right-click and drag to pan the view'
+  },
+  {
+    name: 'Pan View (Touchpad)',
+    category: 'interface',
+    syntax: 'Hold Space + left-click drag on 3D viewer',
+    description: 'Touchpad-friendly panning. Hold the spacebar and left-click drag to pan, same as right-click drag.',
+    params: '<strong>Action:</strong> Spacebar + left mouse button + drag',
+    example: '// Hold Space, then click and drag to pan'
+  },
+  {
+    name: 'Zoom',
+    category: 'interface',
+    syntax: 'Scroll wheel on 3D viewer',
+    description: 'Zoom in and out of the model. Scroll up to zoom in, down to zoom out. Pinch gestures on a touchpad also work.',
+    params: '<strong>Action:</strong> Mouse scroll wheel or touchpad pinch',
+    example: '// Scroll up to zoom in, down to zoom out'
+  },
+  {
+    name: 'Save Project',
+    category: 'interface',
+    syntax: 'Ctrl + S',
+    description: 'Save your current code and settings to the platform. Your project is preserved so you can pick up where you left off.',
+    params: '<strong>Shortcut:</strong> Ctrl+S (Cmd+S on Mac)',
+    example: '// Press Ctrl+S to save your project'
+  },
+  {
+    name: 'Focus Editor',
+    category: 'interface',
+    syntax: 'Escape',
+    description: 'Return keyboard focus to the code editor after clicking in the 3D viewer.',
+    params: '<strong>Shortcut:</strong> Escape key',
+    example: '// Press Escape to jump back to the code editor'
+  },
+  {
+    name: 'Render Model',
+    category: 'interface',
+    syntax: 'Click the Render button or press F5',
+    description: 'Compile your OpenSCAD code and render the 3D model in the viewer. The output panel shows any errors or warnings.',
+    params: '<strong>Action:</strong> Render button in toolbar',
+    example: '// Write code, then click Render to see your model'
+  },
+  {
+    name: 'Export STL',
+    category: 'interface',
+    syntax: 'Click the Export button after rendering',
+    description: 'Export your rendered model as an STL file. The file is saved to your platform files for download or 3D printing.',
+    params: '<strong>Action:</strong> Export button in toolbar (available after render)',
+    example: '// Render your model first, then click Export'
   }
 ];
 
