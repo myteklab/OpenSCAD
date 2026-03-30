@@ -739,6 +739,45 @@ try {
     if (e.key === "Escape" || e.key === "Esc") editor.focus();
   };
 
+  // Spacebar + left drag = pan (simulates right-click drag for touchpad users)
+  let spacebarDown = false;
+  document.addEventListener('keydown', e => {
+    if (e.code === 'Space' && !e.repeat && (e.target === stlViewerElement || e.target === document.body)) {
+      spacebarDown = true;
+      stlViewerElement.style.cursor = 'grab';
+      e.preventDefault();
+    }
+  });
+  document.addEventListener('keyup', e => {
+    if (e.code === 'Space') {
+      spacebarDown = false;
+      stlViewerElement.style.cursor = '';
+    }
+  });
+  stlViewerElement.addEventListener('mousedown', e => {
+    if (spacebarDown && e.button === 0) {
+      e.stopPropagation();
+      e.preventDefault();
+      stlViewerElement.style.cursor = 'grabbing';
+      const fakeEvent = new MouseEvent('mousedown', {
+        button: 2, buttons: 2,
+        clientX: e.clientX, clientY: e.clientY,
+        screenX: e.screenX, screenY: e.screenY,
+        ctrlKey: e.ctrlKey, shiftKey: e.shiftKey, altKey: e.altKey
+      });
+      e.target.dispatchEvent(fakeEvent);
+    }
+  }, true);
+  stlViewerElement.addEventListener('mouseup', e => {
+    if (spacebarDown) {
+      stlViewerElement.style.cursor = 'grab';
+    }
+  });
+  // Prevent context menu from spacebar+drag releasing on viewer
+  stlViewerElement.addEventListener('contextmenu', e => {
+    if (spacebarDown) e.preventDefault();
+  });
+
   const initialState = readStateFromFragment() || defaultState;
   
   setState(initialState);
