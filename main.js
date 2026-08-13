@@ -1,4 +1,5 @@
 import { createWasmMemory, spawnOpenSCAD } from './openscad-runner.js'
+import { parseParameters, formatValue, stepDecimals } from './customizer.js'
 // import OpenScad from "./openscad.js";
 import { registerOpenSCADLanguage } from './openscad-editor-config.js'
 import { writeStateInFragment, readStateFromFragment} from './state.js'
@@ -820,6 +821,8 @@ try {
     onStateChanged({allowRun: true});
   });
 
+  initCustomizer();
+
   // Panel Resize Functionality
   const editorPanel = document.getElementById('editor-panel');
   const viewPanel = document.getElementById('view-panel');
@@ -971,6 +974,261 @@ window.loadProjectData = function(data) {
     });
   }
 };
+
+// ============================================================================
+// Customizer Panel
+// ============================================================================
+
+var customizerVisible = false;
+var applyingCustomizerEdit = false;
+var customizerDragActive = false;
+var customizerRebuildTimer = null;
+
+function escapeHtml(s) {
+  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+const CUSTOMIZER_EXAMPLE = [
+  '/* [My Parameters] */',
+  '// drag the slider to change me',
+  'my_size = 10; // [1:30]',
+  '',
+  '// then use it in your model, like:',
+  '// cube([my_size, my_size, my_size]);',
+  '',
+  '',
+].join('\n');
+
+function initCustomizer() {
+  const panel = document.getElementById('customizer-panel');
+  const content = document.getElementById('customizer-content');
+  const toggleButton = document.getElementById('toggleCustomizer');
+  const closeButton = document.getElementById('customizer-close');
+  if (!panel || !content || !toggleButton || !editor) return;
+
+  function setVisible(visible) {
+    customizerVisible = visible;
+    panel.classList.toggle('show', visible);
+    toggleButton.classList.toggle('active', visible);
+    try { localStorage.setItem('openscad_customizer_visible', visible ? 'true' : 'false'); } catch (e) {}
+    if (visible) rebuild();
+  }
+
+  // Rewrite the current value of `name` in the source. Reparses first so the
+  // edit range is always fresh, even mid-drag when every tick moves columns.
+  function applyValue(name, newValue, mergeUndo) {
+    const model = editor.getModel();
+    if (!model) return;
+    const { parameters } = parseParameters(model.getValue());
+    const param = parameters.find(p => p.name === name);
+    if (!param) return;
+    const token = formatValue(param.type, newValue);
+    if (token === param.raw) return;
+    // One undo step per drag: open a stack element on the first tick, close
+    // it in endDragUndo() when the pointer is released.
+    if (!mergeUndo || !customizerDragActive) {
+      model.pushStackElement();
+      customizerDragActive = !!mergeUndo;
+    }
+    applyingCustomizerEdit = true;
+    try {
+      model.pushEditOperations([], [{
+        range: new monaco.Range(param.line, param.valueStart + 1, param.line, param.valueEnd + 1),
+        text: token,
+      }], () => null);
+    } finally {
+      applyingCustomizerEdit = false;
+    }
+  }
+
+  function endDragUndo() {
+    if (customizerDragActive) {
+      const model = editor.getModel();
+      if (model) model.pushStackElement();
+      customizerDragActive = false;
+    }
+  }
+
+  // A committed control change is as explicit as clicking Render, so render
+  // even when autorender is off. Live update during a drag stays tied to the
+  // autorender checkbox.
+  function commitValue(name, newValue) {
+    applyValue(name, newValue, false);
+    render({now: true});
+  }
+
+  function numberFormatter(param, step) {
+    const decimals = stepDecimals(step);
+    return v => Number(v).toFixed(decimals);
+  }
+
+  function buildControl(param) {
+    const wrap = document.createElement('div');
+    wrap.className = 'customizer-param';
+
+    if (param.type === 'boolean') {
+      const label = document.createElement('label');
+      label.className = 'customizer-param-checkbox';
+      const input = document.createElement('input');
+      input.type = 'checkbox';
+      input.checked = param.value;
+      input.onchange = () => commitValue(param.name, input.checked);
+      const nameSpan = document.createElement('span');
+      nameSpan.className = 'customizer-param-name';
+      nameSpan.textContent = param.name;
+      label.append(input, nameSpan);
+      wrap.append(label);
+      if (param.description) {
+        const desc = document.createElement('div');
+        desc.className = 'customizer-param-desc';
+        desc.textContent = param.description;
+        wrap.append(desc);
+      }
+      return wrap;
+    }
+
+    const labelRow = document.createElement('div');
+    labelRow.className = 'customizer-param-label';
+    const nameSpan = document.createElement('span');
+    nameSpan.className = 'customizer-param-name';
+    nameSpan.textContent = param.name;
+    labelRow.append(nameSpan);
+    wrap.append(labelRow);
+    if (param.description) {
+      const desc = document.createElement('div');
+      desc.className = 'customizer-param-desc';
+      desc.textContent = param.description;
+      wrap.append(desc);
+    }
+
+    if (param.options) {
+      const select = document.createElement('select');
+      for (const opt of param.options) {
+        const o = document.createElement('option');
+        o.value = String(opt.value);
+        o.textContent = opt.label;
+        if (opt.value === param.value) o.selected = true;
+        select.append(o);
+      }
+      select.onchange = () => {
+        const v = param.type === 'number' ? parseFloat(select.value) : select.value;
+        commitValue(param.name, v);
+      };
+      wrap.append(select);
+      return wrap;
+    }
+
+    if (param.type === 'number' && param.min !== undefined && param.max !== undefined) {
+      const step = param.step !== undefined ? param.step
+        : (Number.isInteger(param.value) && Number.isInteger(param.min) && Number.isInteger(param.max) ? 1 : 0.1);
+      const fmt = numberFormatter(param, step);
+      const valueSpan = document.createElement('span');
+      valueSpan.className = 'customizer-param-value';
+      valueSpan.textContent = fmt(param.value);
+      labelRow.append(valueSpan);
+      const input = document.createElement('input');
+      input.type = 'range';
+      input.min = param.min;
+      input.max = param.max;
+      input.step = step;
+      input.value = param.value;
+      input.oninput = () => {
+        valueSpan.textContent = fmt(input.value);
+        applyValue(param.name, parseFloat(input.value), true);
+      };
+      input.onchange = () => { endDragUndo(); render({now: true}); };
+      wrap.append(input);
+      return wrap;
+    }
+
+    if (param.type === 'number') {
+      const input = document.createElement('input');
+      input.type = 'number';
+      input.step = 'any';
+      input.value = param.value;
+      input.onchange = () => {
+        const v = parseFloat(input.value);
+        if (!isNaN(v)) commitValue(param.name, v);
+      };
+      wrap.append(input);
+      return wrap;
+    }
+
+    // Plain string
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.value = param.value;
+    input.onchange = () => commitValue(param.name, input.value);
+    wrap.append(input);
+    return wrap;
+  }
+
+  function rebuild() {
+    if (!editor) return;
+    const { parameters } = parseParameters(editor.getValue());
+    content.innerHTML = '';
+
+    if (parameters.length === 0) {
+      const empty = document.createElement('div');
+      empty.className = 'customizer-empty';
+      empty.innerHTML =
+        '<p>No customizable parameters yet. Add a comment like <b>// [min:max]</b> after a number at the top of your file and a slider appears here:</p>' +
+        '<pre>' + escapeHtml(
+          'width = 10;      // [5:50]  slider\n' +
+          'height = 2.5;    // [0:0.5:10]  with steps\n' +
+          'size = "M";      // [S, M, L]  dropdown\n' +
+          'rounded = true;  // checkbox\n' +
+          '/* [Section Name] */  group heading') + '</pre>' +
+        '<p>See the <b>Customizer</b> tab in Docs for details.</p>';
+      const insertButton = document.createElement('button');
+      insertButton.className = 'btn btn-secondary';
+      insertButton.textContent = 'Insert example at top of file';
+      insertButton.onclick = () => {
+        const model = editor.getModel();
+        if (!model) return;
+        model.pushStackElement();
+        model.pushEditOperations([], [{
+          range: new monaco.Range(1, 1, 1, 1),
+          text: CUSTOMIZER_EXAMPLE,
+        }], () => null);
+        model.pushStackElement();
+      };
+      empty.append(insertButton);
+      content.append(empty);
+      return;
+    }
+
+    let lastSection;
+    for (const param of parameters) {
+      if (param.section !== lastSection) {
+        lastSection = param.section;
+        if (param.section) {
+          const heading = document.createElement('div');
+          heading.className = 'customizer-section-heading';
+          heading.textContent = param.section;
+          content.append(heading);
+        }
+      }
+      content.append(buildControl(param));
+    }
+  }
+
+  toggleButton.onclick = () => setVisible(!customizerVisible);
+  if (closeButton) closeButton.onclick = () => setVisible(false);
+
+  // Keep the panel in sync with hand-typed edits. Panel-originated edits skip
+  // the rebuild (their controls are already correct, and rebuilding mid-drag
+  // would yank the slider out from under the pointer).
+  editor.onDidChangeModelContent(() => {
+    if (!customizerVisible || applyingCustomizerEdit) return;
+    clearTimeout(customizerRebuildTimer);
+    customizerRebuildTimer = setTimeout(rebuild, 300);
+  });
+
+  let startVisible = false;
+  try { startVisible = localStorage.getItem('openscad_customizer_visible') === 'true'; } catch (e) {}
+  if (startVisible) setVisible(true);
+}
 
 // Expose the current STL blob for the adapter (preview capture)
 window.getStlBlob = function() {
@@ -1292,6 +1550,48 @@ const openscadCommands = [
     description: 'Imports external 3D files (STL, OFF, DXF). DXF imports as 2D.',
     params: '<strong>file:</strong> Path to file<br><strong>convexity:</strong> For proper rendering (try values 1-10)',
     example: 'import("model.stl");\n\n// 2D import for extrusion\nlinear_extrude(5)\n  import("shape.dxf");'
+  },
+
+  // Customizer
+  {
+    name: 'Slider',
+    category: 'customizer',
+    syntax: 'width = 10; // [5:50]',
+    description: 'Add a range comment after a number at the top of your file and it becomes a slider in the Customize panel. Drag the slider and watch the number change in your code, and your model update.',
+    params: '<strong>[min:max]:</strong> slider from min to max<br><strong>[min:step:max]:</strong> slider that moves in steps<br><strong>[max]:</strong> slider from 0 to max',
+    example: 'width = 10;   // [5:50]\nheight = 2.5; // [0:0.5:10]\ncount = 4;    // [12]\n\ncube([width, width, height]);'
+  },
+  {
+    name: 'Dropdown',
+    category: 'customizer',
+    syntax: 'size = "M"; // [S, M, L]',
+    description: 'A comma-separated list becomes a dropdown menu. Works with words or numbers, and numbers can have labels.',
+    params: '<strong>[a, b, c]:</strong> pick one of the listed values<br><strong>[10:Small, 20:Big]:</strong> numbers with friendly labels',
+    example: 'size = "M";  // [S, M, L]\nteeth = 10;  // [10:Coarse, 20:Fine]\n\necho(size, teeth);'
+  },
+  {
+    name: 'Checkbox and Text',
+    category: 'customizer',
+    syntax: 'rounded = true;',
+    description: 'A true/false variable becomes a checkbox automatically. A quoted text variable becomes a text field. No comment needed.',
+    params: '<strong>true/false:</strong> checkbox<br><strong>"text":</strong> text field',
+    example: 'rounded = true;\nlabel = "Ada";\n\nif (rounded) sphere(5);\nelse cube(10, center=true);'
+  },
+  {
+    name: 'Sections',
+    category: 'customizer',
+    syntax: '/* [Section Name] */',
+    description: 'Group your parameters under headings with a section comment. The special name Hidden hides everything below it from the panel. A comment line right above a parameter becomes its help text.',
+    params: '<strong>/* [Name] */:</strong> heading in the panel<br><strong>/* [Hidden] */:</strong> hide the parameters below<br><strong>// comment:</strong> help text for the next parameter',
+    example: '/* [Size] */\n// how wide, in millimeters\nwidth = 20; // [5:60]\n\n/* [Hidden] */\nwall = 1.2;'
+  },
+  {
+    name: 'What can be customized?',
+    category: 'customizer',
+    syntax: 'name = value; // before any module',
+    description: 'Only simple values (numbers, true/false, quoted text) assigned at the top of the file, before the first module or function, show up in the panel. Computed values like width * 2 stay code-only.',
+    params: '<strong>Works:</strong> width = 10;<br><strong>Stays code-only:</strong> area = width * 2;',
+    example: 'width = 10;      // shows in panel\narea = width * 2; // code only\n\nmodule box() {\n  inside = 5;     // code only\n}'
   },
 
   // Interface

@@ -715,6 +715,173 @@ window.resourceLoaded = function(resourceName) {
 
     #monacoEditor {
       flex-grow: 1;
+      min-height: 0;
+    }
+
+    /* Customizer Panel */
+    #toggleCustomizer.active {
+      background: #e94560;
+      color: #fff;
+    }
+
+    #customizer-panel {
+      display: none;
+      flex-direction: column;
+      flex-shrink: 0;
+      max-height: 45%;
+      background: #101b36;
+      border-top: 1px solid #0f3460;
+    }
+
+    #customizer-panel.show {
+      display: flex;
+    }
+
+    .customizer-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 14px;
+      background: linear-gradient(135deg, #0f3460 0%, #16213e 100%);
+      border-bottom: 1px solid #0f3460;
+      flex-shrink: 0;
+    }
+
+    .customizer-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: #0cebeb;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    #customizer-close {
+      background: none;
+      border: none;
+      color: #8899bb;
+      font-size: 18px;
+      line-height: 1;
+      cursor: pointer;
+      padding: 2px 6px;
+    }
+
+    #customizer-close:hover {
+      color: #e94560;
+    }
+
+    #customizer-content {
+      overflow-y: auto;
+      padding: 10px 14px 14px;
+    }
+
+    .customizer-section-heading {
+      color: #e94560;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin: 14px 0 8px 0;
+      padding-bottom: 4px;
+      border-bottom: 1px solid rgba(233, 69, 96, 0.3);
+    }
+
+    .customizer-section-heading:first-child {
+      margin-top: 0;
+    }
+
+    .customizer-param {
+      margin-bottom: 12px;
+    }
+
+    .customizer-param-label {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 4px;
+    }
+
+    .customizer-param-name {
+      font-size: 13px;
+      font-weight: 500;
+      color: #e0e0e0;
+      font-family: 'Courier New', monospace;
+    }
+
+    .customizer-param-value {
+      font-size: 12px;
+      color: #20e3b2;
+      font-family: 'Courier New', monospace;
+    }
+
+    .customizer-param-desc {
+      font-size: 11px;
+      color: #8899bb;
+      margin-bottom: 4px;
+    }
+
+    .customizer-param input[type="range"] {
+      width: 100%;
+      accent-color: #e94560;
+      cursor: pointer;
+    }
+
+    .customizer-param input[type="number"],
+    .customizer-param input[type="text"],
+    .customizer-param select {
+      width: 100%;
+      background: #0d1b2a;
+      border: 1px solid #0f3460;
+      border-radius: 4px;
+      color: #e0e0e0;
+      font-size: 13px;
+      padding: 5px 8px;
+      font-family: 'Courier New', monospace;
+    }
+
+    .customizer-param input:focus,
+    .customizer-param select:focus {
+      outline: none;
+      border-color: #e94560;
+    }
+
+    .customizer-param-checkbox {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+    }
+
+    .customizer-param-checkbox input {
+      accent-color: #e94560;
+      width: 15px;
+      height: 15px;
+      cursor: pointer;
+    }
+
+    .customizer-empty {
+      color: #8899bb;
+      font-size: 12px;
+      line-height: 1.6;
+    }
+
+    .customizer-empty p {
+      margin: 0 0 10px 0;
+    }
+
+    .customizer-empty pre {
+      background: #0d1b2a;
+      border: 1px solid #0f3460;
+      border-radius: 6px;
+      padding: 10px;
+      font-size: 11px;
+      color: #20e3b2;
+      overflow-x: auto;
+      margin: 0 0 10px 0;
+    }
+
+    .customizer-empty .btn {
+      font-size: 12px;
     }
 
     /* Documentation Modal */
@@ -1102,6 +1269,17 @@ window.resourceLoaded = function(resourceName) {
       .features {
         display: none;
       }
+
+      #customizer-panel.show {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        width: 100vw;
+        max-height: 50vh;
+        z-index: 5;
+        box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.5);
+      }
     }
 
   </style>
@@ -1115,6 +1293,13 @@ window.resourceLoaded = function(resourceName) {
       <a href="http://openscad.org/cheatsheet/" target="_blank" id="cheatsheet-link">Cheatsheet</a>
       <button id="flip-mode">Flip</button>
       <div id="monacoEditor"></div>
+      <div id="customizer-panel">
+        <div class="customizer-header">
+          <span class="customizer-title">Customize</span>
+          <button id="customizer-close" title="Close">&times;</button>
+        </div>
+        <div id="customizer-content"></div>
+      </div>
       <div class="logs-container">
         <pre><code id="logs"></code></pre>
       </div>
@@ -1139,6 +1324,9 @@ window.resourceLoaded = function(resourceName) {
           </button>
           <button class="btn btn-secondary" id="openDocs" title="OpenSCAD Documentation">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg> Docs
+          </button>
+          <button class="btn btn-secondary" id="toggleCustomizer" title="Customize parameters with sliders">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="4" y1="7" x2="20" y2="7"/><circle cx="9" cy="7" r="2" fill="currentColor"/><line x1="4" y1="12" x2="20" y2="12"/><circle cx="15" cy="12" r="2" fill="currentColor"/><line x1="4" y1="17" x2="20" y2="17"/><circle cx="7" cy="17" r="2" fill="currentColor"/></svg> Customize
           </button>
           <div style="display: flex; gap: 3px; align-items: center; margin-left: 6px; padding-left: 6px; border-left: 1px solid rgba(255,255,255,0.15);">
             <button class="btn btn-icon-only" id="decreaseFontSize" title="Decrease Font Size (Ctrl+-)">
@@ -1270,6 +1458,7 @@ window.resourceLoaded = function(resourceName) {
         <button class="docs-filter-btn" data-category="extrusion">Extrusion</button>
         <button class="docs-filter-btn" data-category="modifiers">Modifiers</button>
         <button class="docs-filter-btn" data-category="math">Math & Logic</button>
+        <button class="docs-filter-btn" data-category="customizer">Customizer</button>
         <button class="docs-filter-btn" data-category="interface">Interface</button>
       </div>
 
