@@ -1420,6 +1420,17 @@ filterButtons.forEach(btn => {
   });
 });
 
+// Render a single interface control card
+function renderInterfaceCard(cmd) {
+  return `
+    <div class="docs-interface-card">
+      <div class="docs-interface-shortcut">${cmd.syntax}</div>
+      <div class="docs-interface-name">${cmd.name}</div>
+      <div class="docs-interface-desc">${cmd.description}</div>
+    </div>
+  `;
+}
+
 // Render commands based on filters
 function renderCommands() {
   const filtered = openscadCommands.filter(cmd => {
@@ -1436,22 +1447,44 @@ function renderCommands() {
     return;
   }
 
-  docsContent.innerHTML = filtered.map(cmd => `
-    <div class="docs-command" data-category="${cmd.category}">
-      <div class="docs-command-header">
-        <h3 class="docs-command-name">${cmd.name}</h3>
-        <span class="docs-command-category">${cmd.category}</span>
+  const interfaceItems = filtered.filter(cmd => cmd.category === 'interface');
+  const codeItems = filtered.filter(cmd => cmd.category !== 'interface');
+
+  let html = '';
+
+  // Interface section
+  if (interfaceItems.length > 0) {
+    html += '<div class="docs-interface-section">';
+    html += '<h3 class="docs-interface-heading">Interface Controls</h3>';
+    html += '<div class="docs-interface-grid">';
+    html += interfaceItems.map(renderInterfaceCard).join('');
+    html += '</div></div>';
+  }
+
+  // Code commands section
+  if (codeItems.length > 0) {
+    if (interfaceItems.length > 0) {
+      html += '<h3 class="docs-interface-heading" style="margin-top:24px;">Commands</h3>';
+    }
+    html += codeItems.map(cmd => `
+      <div class="docs-command" data-category="${cmd.category}">
+        <div class="docs-command-header">
+          <h3 class="docs-command-name">${cmd.name}</h3>
+          <span class="docs-command-category">${cmd.category}</span>
+        </div>
+        <div class="docs-command-description">${cmd.description}</div>
+        <div class="docs-command-params">${cmd.params}</div>
+        <div class="docs-command-example">
+          <pre>${cmd.example}</pre>
+        </div>
+        <button class="docs-insert-btn" data-code="${cmd.example.replace(/"/g, '&quot;')}">
+          Insert Code at Cursor
+        </button>
       </div>
-      <div class="docs-command-description">${cmd.description}</div>
-      <div class="docs-command-params">${cmd.params}</div>
-      <div class="docs-command-example">
-        <pre>${cmd.example}</pre>
-      </div>
-      <button class="docs-insert-btn" data-code="${cmd.example.replace(/"/g, '&quot;')}">
-        ✨ Insert Code at Cursor
-      </button>
-    </div>
-  `).join('');
+    `).join('');
+  }
+
+  docsContent.innerHTML = html;
 
   // Add click handlers to insert buttons
   document.querySelectorAll('.docs-insert-btn').forEach(btn => {
