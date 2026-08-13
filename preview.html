@@ -152,12 +152,220 @@ body {
   z-index: 10;
   display: none;
 }
+
+/* Customize drawer */
+#customize-btn {
+  display: none;
+  background: #e94560;
+  border-color: #e94560;
+  color: #fff;
+}
+
+#customize-btn:hover {
+  background: #d13350;
+}
+
+#customize-btn.active {
+  background: #d13350;
+}
+
+#customize-drawer {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 40px;
+  width: min(290px, 85%);
+  background: rgba(16, 27, 54, 0.97);
+  border-left: 1px solid #0f3460;
+  z-index: 20;
+  display: none;
+  flex-direction: column;
+  box-shadow: -4px 0 16px rgba(0, 0, 0, 0.5);
+}
+
+#customize-drawer.show {
+  display: flex;
+}
+
+.cz-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: linear-gradient(135deg, #0f3460 0%, #16213e 100%);
+  border-bottom: 1px solid #0f3460;
+  flex-shrink: 0;
+}
+
+.cz-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: #0cebeb;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.cz-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+#cz-reset {
+  background: none;
+  border: 1px solid #1a4080;
+  color: #8899bb;
+  border-radius: 4px;
+  font-size: 11px;
+  padding: 3px 8px;
+  cursor: pointer;
+}
+
+#cz-reset:hover {
+  color: #e0e0e0;
+  border-color: #e94560;
+}
+
+#cz-close {
+  background: none;
+  border: none;
+  color: #8899bb;
+  font-size: 17px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 2px 5px;
+}
+
+#cz-close:hover {
+  color: #e94560;
+}
+
+#cz-content {
+  overflow-y: auto;
+  padding: 10px 12px 12px;
+  flex-grow: 1;
+}
+
+.cz-section {
+  color: #e94560;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin: 12px 0 8px 0;
+  padding-bottom: 4px;
+  border-bottom: 1px solid rgba(233, 69, 96, 0.3);
+}
+
+.cz-section:first-child {
+  margin-top: 0;
+}
+
+.cz-param {
+  margin-bottom: 11px;
+}
+
+.cz-label {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 3px;
+}
+
+.cz-name {
+  font-size: 12px;
+  font-weight: 500;
+  color: #e0e0e0;
+  font-family: 'Courier New', monospace;
+}
+
+.cz-value {
+  font-size: 11px;
+  color: #20e3b2;
+  font-family: 'Courier New', monospace;
+}
+
+.cz-desc {
+  font-size: 10px;
+  color: #8899bb;
+  margin-bottom: 3px;
+}
+
+.cz-param input[type="range"] {
+  width: 100%;
+  accent-color: #e94560;
+  cursor: pointer;
+}
+
+.cz-param input[type="number"],
+.cz-param input[type="text"],
+.cz-param select {
+  width: 100%;
+  background: #0d1b2a;
+  border: 1px solid #0f3460;
+  border-radius: 4px;
+  color: #e0e0e0;
+  font-size: 12px;
+  padding: 4px 7px;
+  font-family: 'Courier New', monospace;
+}
+
+.cz-param input:focus,
+.cz-param select:focus {
+  outline: none;
+  border-color: #e94560;
+}
+
+.cz-check {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  cursor: pointer;
+}
+
+.cz-check input {
+  accent-color: #e94560;
+  width: 14px;
+  height: 14px;
+  cursor: pointer;
+  display: inline-block;
+}
+
+#cz-status {
+  flex-shrink: 0;
+  padding: 6px 12px;
+  font-size: 11px;
+  color: #8899bb;
+  border-top: 1px solid #0f3460;
+  min-height: 27px;
+}
+
+#cz-status.working {
+  color: #0cebeb;
+}
+
+#cz-status.error {
+  color: #ff6b6b;
+}
 </style>
 </head>
 <body>
 
 <div id="viewer-container">
   <div id="scale-label"></div>
+</div>
+
+<div id="customize-drawer">
+  <div class="cz-header">
+    <span class="cz-title">Customize</span>
+    <div class="cz-header-actions">
+      <button id="cz-reset" title="Back to the original model">Reset</button>
+      <button id="cz-close" title="Close">&times;</button>
+    </div>
+  </div>
+  <div id="cz-content"></div>
+  <div id="cz-status"></div>
 </div>
 
 <div id="controls">
@@ -186,6 +394,10 @@ body {
       Edges
     </span>
   </label>
+  <button id="customize-btn" title="Change this model's parameters">
+    <span class="icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="4" y1="7" x2="20" y2="7"/><circle cx="9" cy="7" r="2" fill="currentColor"/><line x1="4" y1="12" x2="20" y2="12"/><circle cx="15" cy="12" r="2" fill="currentColor"/><line x1="4" y1="17" x2="20" y2="17"/><circle cx="7" cy="17" r="2" fill="currentColor"/></svg></span>
+    Customize
+  </button>
   <button id="reset-cam" title="Reset camera to default position">
     <span class="icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6"/><path d="M9 21H3v-6"/><path d="M21 3l-7 7"/><path d="M3 21l7-7"/></svg></span>
     Reset View
@@ -351,6 +563,273 @@ body {
     }
   });
 
+  // ==========================================================================
+  // Customizer: rebuild the model from its source with new parameter values.
+  // The compiler (13MB wasm) is only fetched after the first value change;
+  // opening the drawer costs nothing but a text parse.
+  // ==========================================================================
+  var projectCode = null;
+  var projectFeatures = [];
+  var czParams = [];
+  var czValues = {};
+  var czMod = null;          // customizer.js module (parser + formatValue)
+  var runnerMod = null;      // openscad-runner.js module
+  var czGeneration = 0;      // stale-render guard
+  var czKill = null;         // kill handle for the in-flight render
+  var czDebounce = null;
+  var RENDER_TIMEOUT_MS = 60000;
+
+  var customizeBtn = document.getElementById('customize-btn');
+  var drawer = document.getElementById('customize-drawer');
+  var czContent = document.getElementById('cz-content');
+  var czStatus = document.getElementById('cz-status');
+
+  function setStatus(text, cls) {
+    czStatus.textContent = text || '';
+    czStatus.className = cls || '';
+  }
+
+  function stepDecimalsOf(step) {
+    if (!step || Number.isInteger(step)) return 0;
+    var s = String(step);
+    var dot = s.indexOf('.');
+    return dot === -1 ? 0 : s.length - dot - 1;
+  }
+
+  function buildDrawerControls() {
+    czContent.innerHTML = '';
+    var lastSection;
+    czParams.forEach(function(param) {
+      if (param.section !== lastSection) {
+        lastSection = param.section;
+        if (param.section) {
+          var heading = document.createElement('div');
+          heading.className = 'cz-section';
+          heading.textContent = param.section;
+          czContent.appendChild(heading);
+        }
+      }
+      czContent.appendChild(buildDrawerControl(param));
+    });
+  }
+
+  function buildDrawerControl(param) {
+    var wrap = document.createElement('div');
+    wrap.className = 'cz-param';
+
+    if (param.type === 'boolean') {
+      var checkLabel = document.createElement('label');
+      checkLabel.className = 'cz-check';
+      var cb = document.createElement('input');
+      cb.type = 'checkbox';
+      cb.checked = czValues[param.name];
+      cb.onchange = function() { setValue(param.name, cb.checked); };
+      var cbName = document.createElement('span');
+      cbName.className = 'cz-name';
+      cbName.textContent = param.name;
+      checkLabel.appendChild(cb);
+      checkLabel.appendChild(cbName);
+      wrap.appendChild(checkLabel);
+      if (param.description) wrap.appendChild(descEl(param.description));
+      return wrap;
+    }
+
+    var labelRow = document.createElement('div');
+    labelRow.className = 'cz-label';
+    var nameSpan = document.createElement('span');
+    nameSpan.className = 'cz-name';
+    nameSpan.textContent = param.name;
+    labelRow.appendChild(nameSpan);
+    wrap.appendChild(labelRow);
+    if (param.description) wrap.appendChild(descEl(param.description));
+
+    if (param.options) {
+      var select = document.createElement('select');
+      param.options.forEach(function(opt) {
+        var o = document.createElement('option');
+        o.value = String(opt.value);
+        o.textContent = opt.label;
+        if (opt.value === czValues[param.name]) o.selected = true;
+        select.appendChild(o);
+      });
+      select.onchange = function() {
+        setValue(param.name, param.type === 'number' ? parseFloat(select.value) : select.value);
+      };
+      wrap.appendChild(select);
+      return wrap;
+    }
+
+    if (param.type === 'number' && param.min !== undefined && param.max !== undefined) {
+      var step = param.step !== undefined ? param.step
+        : (Number.isInteger(param.value) && Number.isInteger(param.min) && Number.isInteger(param.max) ? 1 : 0.1);
+      var decimals = stepDecimalsOf(step);
+      var valueSpan = document.createElement('span');
+      valueSpan.className = 'cz-value';
+      valueSpan.textContent = Number(czValues[param.name]).toFixed(decimals);
+      labelRow.appendChild(valueSpan);
+      var slider = document.createElement('input');
+      slider.type = 'range';
+      slider.min = param.min;
+      slider.max = param.max;
+      slider.step = step;
+      slider.value = czValues[param.name];
+      slider.oninput = function() {
+        valueSpan.textContent = Number(slider.value).toFixed(decimals);
+      };
+      slider.onchange = function() {
+        setValue(param.name, parseFloat(slider.value));
+      };
+      wrap.appendChild(slider);
+      return wrap;
+    }
+
+    if (param.type === 'number') {
+      var num = document.createElement('input');
+      num.type = 'number';
+      num.step = 'any';
+      num.value = czValues[param.name];
+      num.onchange = function() {
+        var v = parseFloat(num.value);
+        if (!isNaN(v)) setValue(param.name, v);
+      };
+      wrap.appendChild(num);
+      return wrap;
+    }
+
+    var text = document.createElement('input');
+    text.type = 'text';
+    text.value = czValues[param.name];
+    text.onchange = function() { setValue(param.name, text.value); };
+    wrap.appendChild(text);
+    return wrap;
+  }
+
+  function descEl(description) {
+    var el = document.createElement('div');
+    el.className = 'cz-desc';
+    el.textContent = description;
+    return el;
+  }
+
+  function setValue(name, value) {
+    czValues[name] = value;
+    clearTimeout(czDebounce);
+    czDebounce = setTimeout(renderCustomized, 400);
+  }
+
+  function overrideArgs() {
+    var args = [];
+    czParams.forEach(function(param) {
+      var v = czValues[param.name];
+      if (v !== param.value) {
+        args.push('-D', param.name + '=' + czMod.formatValue(param.type, v));
+      }
+    });
+    return args;
+  }
+
+  function renderCustomized() {
+    var overrides = overrideArgs();
+    if (overrides.length === 0) {
+      restoreOriginal();
+      return;
+    }
+    var generation = ++czGeneration;
+    if (czKill) { try { czKill(); } catch (e) {} czKill = null; }
+    setStatus('Rebuilding the model...', 'working');
+
+    var load = runnerMod ? Promise.resolve(runnerMod) : import('./openscad-runner.js');
+    load.then(function(mod) {
+      runnerMod = mod;
+      if (generation !== czGeneration) return;
+
+      var job = mod.spawnOpenSCAD({
+        inputs: [['input.scad', projectCode + '\n']],
+        args: ['input.scad', '-o', 'export.stl', '--export-format=binstl']
+          .concat(projectFeatures.map(function(f) { return '--enable=' + f; }))
+          .concat(overrides),
+        outputPaths: ['export.stl']
+      });
+      czKill = job.kill;
+
+      var timer = setTimeout(function() {
+        if (generation === czGeneration && czKill) {
+          try { czKill(); } catch (e) {}
+          czKill = null;
+          setStatus('That took too long to build. Try a smaller change.', 'error');
+        }
+      }, RENDER_TIMEOUT_MS);
+
+      job.then(function(result) {
+        clearTimeout(timer);
+        if (generation !== czGeneration) return;
+        czKill = null;
+        var output = result.outputs && result.outputs[0];
+        if (result.exitCode !== 0 || !output) {
+          setStatus('Could not build the model with those values.', 'error');
+          return;
+        }
+        var blob = new Blob([output[1]], { type: 'application/octet-stream' });
+        swapModel(new File([blob], 'customized.stl'));
+        setStatus('Showing your customized model.', '');
+      }).catch(function() {
+        clearTimeout(timer);
+        if (generation !== czGeneration) return;
+        czKill = null;
+        setStatus('Could not build the model with those values.', 'error');
+      });
+    }).catch(function() {
+      if (generation === czGeneration) setStatus('Customizer could not load.', 'error');
+    });
+  }
+
+  function swapModel(source) {
+    if (!viewer) return;
+    try { viewer.remove_model(1); } catch (e) {}
+    if (typeof source === 'string') {
+      viewer.add_model({ id: 1, filename: source });
+    } else {
+      viewer.add_model({ id: 1, local_file: source });
+    }
+  }
+
+  function restoreOriginal() {
+    czGeneration++;
+    if (czKill) { try { czKill(); } catch (e) {} czKill = null; }
+    if (stlUrl) swapModel(stlUrl);
+    setStatus('', '');
+  }
+
+  function initCustomizer(code) {
+    import('./customizer.js').then(function(mod) {
+      czMod = mod;
+      var parsed = mod.parseParameters(code);
+      czParams = parsed.parameters;
+      if (czParams.length === 0) return;
+      czParams.forEach(function(param) { czValues[param.name] = param.value; });
+      buildDrawerControls();
+      customizeBtn.style.display = 'inline-flex';
+    }).catch(function() { /* old browser or fetch failure: no customizer */ });
+  }
+
+  customizeBtn.addEventListener('click', function() {
+    var open = !drawer.classList.contains('show');
+    drawer.classList.toggle('show', open);
+    customizeBtn.classList.toggle('active', open);
+  });
+
+  document.getElementById('cz-close').addEventListener('click', function() {
+    drawer.classList.remove('show');
+    customizeBtn.classList.remove('active');
+  });
+
+  document.getElementById('cz-reset').addEventListener('click', function() {
+    clearTimeout(czDebounce);
+    czParams.forEach(function(param) { czValues[param.name] = param.value; });
+    buildDrawerControls();
+    restoreOriginal();
+  });
+
   // Listen for messages from the parent page
   window.addEventListener('message', function(e) {
     var msg = e.data || {};
@@ -358,10 +837,15 @@ body {
     if (msg.type === 'LOAD_PREVIEW') {
       // Received from project-preview.php
       // msg.stlUrl = URL to fetch the STL file
-      // msg.data = project data (code, features) - not used here since we show STL
+      // msg.data = project data (code, features), used by the customizer
       if (msg.stlUrl) {
         stlUrl = msg.stlUrl;
         buildViewer(stlUrl);
+        if (msg.data && typeof msg.data.code === 'string' && msg.data.code) {
+          projectCode = msg.data.code;
+          projectFeatures = Array.isArray(msg.data.features) ? msg.data.features : [];
+          initCustomizer(projectCode);
+        }
       } else {
         showError();
       }
