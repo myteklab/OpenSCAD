@@ -789,6 +789,37 @@ body {
     return args;
   }
 
+  // The project source with the current slider values written into the
+  // assignment lines. This is what a Remix should carry: the remixer opens
+  // the editor and finds their own values in the code.
+  function customizedSource() {
+    var changed = czParams.filter(function(param) {
+      return czValues[param.name] !== param.value;
+    });
+    if (changed.length === 0) return null;
+    var lines = projectCode.split('\n');
+    // Rewrite from the bottom up so earlier ranges stay valid
+    changed.sort(function(a, b) { return b.line - a.line || b.valueStart - a.valueStart; });
+    changed.forEach(function(param) {
+      var line = lines[param.line - 1];
+      lines[param.line - 1] = line.slice(0, param.valueStart)
+        + czMod.formatValue(param.type, czValues[param.name])
+        + line.slice(param.valueEnd);
+    });
+    return lines.join('\n');
+  }
+
+  // Tell the parent page what a remix should contain right now. Sent after
+  // every successful rebuild, and null after a reset, so the parent's Remix
+  // button always reflects what the viewer is looking at.
+  function announceCustomizedCode(codeOrNull) {
+    if (window.parent === window) return;
+    window.parent.postMessage({
+      type: 'CUSTOMIZED_CODE',
+      data: codeOrNull === null ? null : { code: codeOrNull, features: projectFeatures }
+    }, '*');
+  }
+
   function renderCustomized() {
     var overrides = overrideArgs();
     if (overrides.length === 0) {
@@ -834,6 +865,7 @@ body {
         swapModel(new File([blob], 'customized.stl'));
         lastCustomBytes = output[1];
         updateSaveButton();
+        announceCustomizedCode(customizedSource());
         setStatus('Showing your customized model.', '');
       }).catch(function() {
         clearTimeout(timer);
@@ -862,6 +894,7 @@ body {
     if (stlUrl) swapModel(stlUrl);
     lastCustomBytes = null;
     updateSaveButton();
+    announceCustomizedCode(null);
     setStatus('', '');
   }
 
