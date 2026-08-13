@@ -332,13 +332,39 @@ body {
   display: inline-block;
 }
 
-#cz-status {
+.cz-footer {
   flex-shrink: 0;
-  padding: 6px 12px;
+  border-top: 1px solid #0f3460;
+}
+
+#cz-status {
+  padding: 6px 12px 2px;
   font-size: 11px;
   color: #8899bb;
-  border-top: 1px solid #0f3460;
-  min-height: 27px;
+  min-height: 23px;
+}
+
+#cz-save {
+  display: none;
+  margin: 4px 12px 10px;
+  width: calc(100% - 24px);
+  background: #0cebeb;
+  border: none;
+  border-radius: 4px;
+  color: #101b36;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 10px;
+  cursor: pointer;
+}
+
+#cz-save:hover {
+  background: #20e3b2;
+}
+
+#cz-save:disabled {
+  opacity: 0.5;
+  cursor: default;
 }
 
 #cz-status.working {
@@ -365,7 +391,10 @@ body {
     </div>
   </div>
   <div id="cz-content"></div>
-  <div id="cz-status"></div>
+  <div class="cz-footer">
+    <div id="cz-status"></div>
+    <button id="cz-save">Save STL to my files</button>
+  </div>
 </div>
 
 <div id="controls">
@@ -583,6 +612,38 @@ body {
   var drawer = document.getElementById('customize-drawer');
   var czContent = document.getElementById('cz-content');
   var czStatus = document.getElementById('cz-status');
+  var czSave = document.getElementById('cz-save');
+  var canSaveFiles = false;      // parent says the viewer is logged in
+  var lastCustomBytes = null;    // Uint8Array of the last successful rebuild
+  var saving = false;
+
+  function updateSaveButton() {
+    czSave.style.display = (canSaveFiles && lastCustomBytes) ? 'block' : 'none';
+  }
+
+  czSave.addEventListener('click', function() {
+    if (!lastCustomBytes || saving || window.parent === window) return;
+    saving = true;
+    czSave.disabled = true;
+    setStatus('Saving to your files...', 'working');
+    // Copy the bytes: the transfer would detach our buffer, and the student
+    // may save again after another change.
+    var copy = lastCustomBytes.slice().buffer;
+    window.parent.postMessage({ type: 'SAVE_STL', buffer: copy }, '*', [copy]);
+  });
+
+  window.addEventListener('message', function(e) {
+    var msg = e.data || {};
+    if (msg.type === 'SAVE_STL_RESULT') {
+      saving = false;
+      czSave.disabled = false;
+      if (msg.ok) {
+        setStatus('Saved ' + (msg.filename || 'your STL') + ' to your files.', '');
+      } else {
+        setStatus(msg.message || 'Could not save the file.', 'error');
+      }
+    }
+  });
 
   function setStatus(text, cls) {
     czStatus.textContent = text || '';
@@ -771,6 +832,8 @@ body {
         }
         var blob = new Blob([output[1]], { type: 'application/octet-stream' });
         swapModel(new File([blob], 'customized.stl'));
+        lastCustomBytes = output[1];
+        updateSaveButton();
         setStatus('Showing your customized model.', '');
       }).catch(function() {
         clearTimeout(timer);
@@ -797,6 +860,8 @@ body {
     czGeneration++;
     if (czKill) { try { czKill(); } catch (e) {} czKill = null; }
     if (stlUrl) swapModel(stlUrl);
+    lastCustomBytes = null;
+    updateSaveButton();
     setStatus('', '');
   }
 
@@ -840,6 +905,7 @@ body {
       // msg.data = project data (code, features), used by the customizer
       if (msg.stlUrl) {
         stlUrl = msg.stlUrl;
+        canSaveFiles = !!msg.canSaveFiles;
         buildViewer(stlUrl);
         if (msg.data && typeof msg.data.code === 'string' && msg.data.code) {
           projectCode = msg.data.code;
